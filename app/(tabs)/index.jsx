@@ -8,9 +8,14 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { FontAwesome, Fontisto } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Audio } from "expo-av";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import '../../global.css';
 const ProfilePage = () => {
+
+  const router = useRouter();
+
   const [recording, setRecording] = useState(null);
   const [sound, setSound] = useState(null);
   const [recordingUri, setRecordingUri] = useState(null);
@@ -31,7 +36,6 @@ const ProfilePage = () => {
         }
       }
     };
-
     requestPermissions();
   }, []);
 
@@ -79,6 +83,21 @@ const ProfilePage = () => {
     }
   };
 
+  const saveRecording = async () => {
+    try{
+     if(!recordingUri) return;
+
+     const existingRecordings = await AsyncStorage.getItem("recordings");
+     const recordings = existingRecordings ? JSON.parse(existingRecordings) : [];
+
+     recordings.push(recordingUri);
+     await AsyncStorage.setItem("recordings", JSON.stringify(recordings));
+     Alert.alert("Success!","Recording saved successfully!");
+    }catch(err){
+      console.error("Failed to save recording:", err);
+    }
+    saveRecording(uri);
+  }
   return (
     <View className="flex-1 items-center p-[1rem] justify-center relative bg-[#e0e1dd]">
       <TouchableOpacity
@@ -95,6 +114,7 @@ const ProfilePage = () => {
           activeOpacity={0.7}
           className={`h-[4rem] w-[4rem] rounded-full bg-white
          items-center justify-center`}
+          onPress={saveRecording}
         >
           <Fontisto name="favorite" size={30} color="black" />
         </TouchableOpacity>
@@ -126,6 +146,7 @@ const ProfilePage = () => {
         activeOpacity={0.7}
         className="h-[4rem] w-[4rem] bg-black
        rounded-full flex items-center justify-center absolute bottom-3 right-5"
+        onPress={() => router.push("/storage")}
       >
         <FontAwesome name="bars" size={30} color="white" />
       </TouchableOpacity>
